@@ -1,0 +1,8 @@
+env: "local"
+server:
+  host: "localhost"
+  port: "8080"
+database:
+  username: "admin"
+  password: "admin"
+  db_name: "analysis_db"
