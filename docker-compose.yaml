@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres:16.0
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=analysis_db
+    restart: unless-stopped
+    networks:
+      - analysis_collector_network
+
+volumes:
+  postgres:
+
+networks:
+  analysis_collector_network:
+    driver: bridge

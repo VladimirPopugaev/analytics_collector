@@ -22,11 +22,13 @@ type DBConfig struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 	DBName   string `yaml:"db_name"`
+	Address  string `yaml:"address"`
+	SSLMode  string `yaml:"ssl_mode"`
 }
 
 func New(path string) (*Config, error) {
 	const op = "config.New"
-	err := ValidConfigPath(path)
+	err := validConfigPath(path)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -47,7 +49,7 @@ func New(path string) (*Config, error) {
 	return cfg, nil
 }
 
-func ValidConfigPath(path string) error {
+func validConfigPath(path string) error {
 	const op = "config.ValidConfigPath"
 
 	fileInfo, err := os.Stat(path)
@@ -59,4 +61,8 @@ func ValidConfigPath(path string) error {
 	}
 
 	return nil
+}
+
+func (cfg *Config) GetServerAddr() string {
+	return fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port)
 }

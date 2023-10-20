@@ -6,3 +6,5 @@ database:
   username: "admin"
   password: "admin"
   db_name: "analysis_db"
+  ssl_mode: "disable"
+  address: "localhost:5432"
