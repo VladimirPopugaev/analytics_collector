@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -18,7 +19,7 @@ const (
 	healthcheckCount = 5
 )
 
-func New(cfg config.DBConfig) (*Storage, error) {
+func New(ctx context.Context, cfg config.DBConfig) (*Storage, error) {
 	const op = "storage.postgres.New"
 
 	// open connection
@@ -28,7 +29,10 @@ func New(cfg config.DBConfig) (*Storage, error) {
 	}
 
 	// healthcheck
-	err = tryPingConnection(db, healthcheckCount)
+	err = tryPingConnection(ctx, db, healthcheckCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: Ping database error: %w. Database URL: %s", op, err, getURLFromConfig(cfg))
+	}
 
 	return &Storage{db: db}, nil
 }
@@ -43,11 +47,11 @@ func getURLFromConfig(cfg config.DBConfig) string {
 	)
 }
 
-func tryPingConnection(db *sqlx.DB, count int) error {
+func tryPingConnection(ctx context.Context, db *sqlx.DB, count int) error {
 	var err error
 
 	for count > 5 {
-		err = db.Ping()
+		err = db.PingContext(ctx)
 		if err != nil {
 			count--
 			time.Sleep(1 * time.Second)

@@ -1,15 +1,16 @@
 package main
 
 import (
+	"analytics_collector/internal/config"
+	sl "analytics_collector/internal/logger"
+	"analytics_collector/internal/storage/postgres"
 	"context"
 	syslog "log"
 	"log/slog"
 	"net/http"
-	"time"
-
-	"analytics_collector/internal/config"
-	sl "analytics_collector/internal/logger"
-	"analytics_collector/internal/storage/postgres"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 const (
@@ -17,12 +18,19 @@ const (
 )
 
 func main() {
+	// create context
+	appCtx := context.Background()
+	appCtx, cancel := signal.NotifyContext(appCtx, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	// parse config
 	cfg, err := config.New(configPath)
 	if err != nil {
 		syslog.Fatalf("Config is not found. Error: %s", err)
 	}
 
-	storage, err := postgres.New(cfg.DB)
+	// create storage
+	storage, err := postgres.New(appCtx, cfg.DB)
 	if err != nil {
 		syslog.Fatalf("storage is not created. Error: %s", err)
 	}
@@ -39,10 +47,6 @@ func main() {
 		Addr:    cfg.GetServerAddr(),
 		Handler: nil,
 	}
-
-	appContext, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	_ = appContext
 
 	log.Info("Server started",
 		slog.String("env", cfg.Env),
