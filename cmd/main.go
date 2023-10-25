@@ -18,10 +18,6 @@ import (
 	sl "analytics_collector/internal/logging"
 )
 
-const (
-	configPath = "./configs/local.yaml"
-)
-
 func main() {
 	// create context
 	appCtx := context.Background()
@@ -29,7 +25,7 @@ func main() {
 	defer cancel()
 
 	// parse config
-	cfg, err := config.New(configPath)
+	cfg, err := config.New()
 	if err != nil {
 		log.Fatalf("Config is not found. Error: %s", err)
 	}

@@ -27,14 +27,20 @@ type DBConfig struct {
 	SSLMode  string `yaml:"ssl_mode"`
 }
 
-func New(path string) (*Config, error) {
+func New() (*Config, error) {
 	const op = "config.New"
-	err := validConfigPath(path)
+
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		return nil, fmt.Errorf("CONFIG_PATH is not set")
+	}
+
+	err := validConfigPath(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	file, err := os.Open(path)
+	file, err := os.Open(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("%s: file is not open. %w", op, err)
 	}
