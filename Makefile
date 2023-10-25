@@ -2,7 +2,7 @@ MIGRATIONS_PATH=migrations/postgres
 DB_URL=postgresql://admin:admin@localhost:5432/analysis_db?sslmode=disable
 
 services-up:
-	docker-compose up
+	docker-compose up -d
 
 services-down:
 	docker-compose down
