@@ -2,11 +2,11 @@ package worker_pool
 
 import (
 	"analytics_collector/internal/api/storage"
+	sl "analytics_collector/internal/logging"
 	"context"
 	"fmt"
 	"log/slog"
 	"sync"
-	"time"
 )
 
 type Saver interface {
@@ -45,13 +45,22 @@ func startWorker(ctx context.Context, log *slog.Logger, workerNumber int, jobs <
 		case <-ctx.Done():
 			log.Info(fmt.Sprintf("worker %d is ended", workerNumber))
 			return
-		case job := <-jobs:
-			// TODO: implements workers
-			time.Sleep(3 * time.Second)
-			log.Info(
-				fmt.Sprintf("worker %d done task", workerNumber),
-				slog.String("Job", fmt.Sprintf("%+v", job)),
-			)
+		case userInfo := <-jobs:
+			err := saver.Save(ctx, userInfo)
+			if err != nil {
+				log.ErrorContext(ctx,
+					fmt.Sprintf("worker %d failed task", workerNumber),
+					slog.String("Job", fmt.Sprintf("%+v", userInfo)),
+					sl.Err(err),
+				)
+
+				continue
+			} else {
+				log.InfoContext(ctx,
+					fmt.Sprintf("worker %d done task", workerNumber),
+					slog.String("Job", fmt.Sprintf("%+v", userInfo)),
+				)
+			}
 		}
 	}
 }

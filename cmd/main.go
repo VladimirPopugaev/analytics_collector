@@ -72,12 +72,14 @@ func main() {
 	<-appCtx.Done()
 	logger.Info("Service stopped")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatalf("Server shutdown failed. Error: %+v", err)
 	}
+
+	<-ctx.Done()
 
 	logger.Info("Program correctly finished")
 }

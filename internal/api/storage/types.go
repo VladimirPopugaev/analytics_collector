@@ -5,12 +5,10 @@ import "time"
 type UserActionInfo struct {
 	Time   time.Time
 	UserID string
-	Data   Request
+	Data   RequestInfo
 }
 
-type Request struct {
+type RequestInfo struct {
 	Body    string
 	Headers string
 }
-
-//TODO: add own errors

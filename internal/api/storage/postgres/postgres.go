@@ -64,7 +64,18 @@ func tryPingConnection(ctx context.Context, db *sqlx.DB, count int) error {
 	return err
 }
 
-func (storage Storage) Save(ctx context.Context, info storage.UserActionInfo) error {
-	//TODO: realize method
+func (s *Storage) Save(ctx context.Context, info storage.UserActionInfo) error {
+	const op = "storage.postgres.Save"
+
+	stmt, err := s.db.PrepareContext(ctx, `INSERT INTO metrics(query_time, user_id, query_data) VALUES ($1, $2, $3)`)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = stmt.ExecContext(ctx, info.Time, info.UserID, info.Data)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	return nil
 }

@@ -89,10 +89,7 @@ func prepareInfo(r *http.Request) (storage.UserActionInfo, error) {
 	result := storage.UserActionInfo{
 		Time:   time.Now(),
 		UserID: userId,
-		Data: storage.Request{
-			Body:    body,
-			Headers: jsonHeaders,
-		},
+		Data:   storage.RequestInfo{Body: body, Headers: jsonHeaders},
 	}
 
 	return result, nil
