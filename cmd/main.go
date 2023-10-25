@@ -1,16 +1,21 @@
 package main
 
 import (
-	"analytics_collector/internal/config"
-	sl "analytics_collector/internal/logger"
-	"analytics_collector/internal/storage/postgres"
 	"context"
-	syslog "log"
+	"errors"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
+
+	"analytics_collector/internal/api/http-server/handlers/metrics/analytics"
+	metricWorkerPool "analytics_collector/internal/api/http-server/handlers/metrics/worker_pool"
+	"analytics_collector/internal/api/storage/postgres"
+	"analytics_collector/internal/config"
+	sl "analytics_collector/internal/logging"
 )
 
 const (
@@ -26,36 +31,53 @@ func main() {
 	// parse config
 	cfg, err := config.New(configPath)
 	if err != nil {
-		syslog.Fatalf("Config is not found. Error: %s", err)
+		log.Fatalf("Config is not found. Error: %s", err)
 	}
 
 	// create storage
 	storage, err := postgres.New(appCtx, cfg.DB)
 	if err != nil {
-		syslog.Fatalf("storage is not created. Error: %s", err)
+		log.Fatalf("storage is not created. Error: %s", err)
 	}
-	syslog.Printf("storage started")
-	_ = storage
 
-	log, err := sl.SetupLogger(cfg.Env)
+	// create logging
+	logger, err := sl.SetupLogger(cfg.Env)
 	if err != nil {
-		syslog.Fatalf("logger is not created. Error: %s", err)
+		log.Fatalf("logging is not created. Error: %s", err)
 	}
 
-	//TODO: add handlers
+	mux := http.NewServeMux()
+
+	// create workers for request "/analytics"
+	jobsChannel := metricWorkerPool.New(appCtx, logger, cfg.Server.WorkersCount, storage)
+	mux.HandleFunc("/analytics", analytics.HandleAnalytics(appCtx, logger, jobsChannel))
+
 	server := &http.Server{
 		Addr:    cfg.GetServerAddr(),
-		Handler: nil,
+		Handler: mux,
 	}
 
-	log.Info("Server started",
+	// start server
+	go func() {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("Server not started. Error: %s", err)
+		}
+	}()
+
+	logger.Info("Server started",
 		slog.String("env", cfg.Env),
 		slog.String("Address", cfg.GetServerAddr()),
 	)
 
-	if err := server.ListenAndServe(); err != nil {
-		log.Error("failed to start service")
+	<-appCtx.Done()
+	logger.Info("Service stopped")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server shutdown failed. Error: %+v", err)
 	}
 
-	log.Info("Service stopped")
+	logger.Info("Program correctly finished")
 }

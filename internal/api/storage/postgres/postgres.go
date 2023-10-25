@@ -8,6 +8,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 
+	"analytics_collector/internal/api/storage"
 	"analytics_collector/internal/config"
 )
 
@@ -50,7 +51,7 @@ func getURLFromConfig(cfg config.DBConfig) string {
 func tryPingConnection(ctx context.Context, db *sqlx.DB, count int) error {
 	var err error
 
-	for count > 5 {
+	for count > 0 {
 		err = db.PingContext(ctx)
 		if err != nil {
 			count--
@@ -61,4 +62,9 @@ func tryPingConnection(ctx context.Context, db *sqlx.DB, count int) error {
 	}
 
 	return err
+}
+
+func (storage Storage) Save(ctx context.Context, info storage.UserActionInfo) error {
+	//TODO: realize method
+	return nil
 }

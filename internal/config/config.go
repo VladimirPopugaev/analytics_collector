@@ -14,8 +14,9 @@ type Config struct {
 }
 
 type Server struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
+	Host         string `yaml:"host"`
+	Port         string `yaml:"port"`
+	WorkersCount int    `yaml:"workers_count"`
 }
 
 type DBConfig struct {

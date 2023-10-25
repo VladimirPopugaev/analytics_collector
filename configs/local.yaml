@@ -2,6 +2,7 @@ env: "local"
 server:
   host: "localhost"
   port: "8080"
+  workers_count: 5
 database:
   username: "admin"
   password: "admin"
