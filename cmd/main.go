@@ -13,9 +13,9 @@ import (
 
 	"analytics_collector/internal/api/http-server/handlers/metrics/analytics"
 	metricWorkerPool "analytics_collector/internal/api/http-server/handlers/metrics/worker_pool"
-	"analytics_collector/internal/api/storage/postgres"
 	"analytics_collector/internal/config"
 	sl "analytics_collector/internal/logging"
+	"analytics_collector/internal/storage/postgres"
 )
 
 func main() {

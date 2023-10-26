@@ -3,13 +3,14 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 
-	"analytics_collector/internal/api/storage"
 	"analytics_collector/internal/config"
+	"analytics_collector/internal/storage"
 )
 
 type Storage struct {
@@ -28,6 +29,17 @@ func New(ctx context.Context, cfg config.DBConfig) (*Storage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+
+	// close connection
+	go func() {
+		<-ctx.Done()
+
+		err := db.Close()
+		if err != nil {
+			log.Printf("DB connection can't be closed: %s", err)
+		}
+		log.Printf("DB connection was closed")
+	}()
 
 	// healthcheck
 	err = tryPingConnection(ctx, db, healthcheckCount)

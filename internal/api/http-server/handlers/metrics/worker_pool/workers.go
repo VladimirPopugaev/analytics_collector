@@ -1,12 +1,13 @@
 package worker_pool
 
 import (
-	"analytics_collector/internal/api/storage"
-	sl "analytics_collector/internal/logging"
 	"context"
 	"fmt"
 	"log/slog"
 	"sync"
+
+	sl "analytics_collector/internal/logging"
+	"analytics_collector/internal/storage"
 )
 
 type Saver interface {

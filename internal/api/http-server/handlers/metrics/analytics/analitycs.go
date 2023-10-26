@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"time"
 
-	"analytics_collector/internal/api/storage"
 	"analytics_collector/internal/lib/response"
 	sl "analytics_collector/internal/logging"
+	"analytics_collector/internal/storage"
 )
 
 const (
