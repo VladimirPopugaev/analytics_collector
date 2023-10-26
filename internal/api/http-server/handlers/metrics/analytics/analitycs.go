@@ -29,7 +29,7 @@ func HandleAnalytics(ctx context.Context, log *slog.Logger, jobs chan<- storage.
 				slog.String("Current method", r.Method),
 			)
 
-			http.Error(w, "Method must be POST", http.StatusBadRequest)
+			http.Error(w, "Method must be POST", http.StatusMethodNotAllowed)
 			return
 		}
 
@@ -71,9 +71,11 @@ func prepareInfo(r *http.Request) (storage.UserActionInfo, error) {
 
 	// get body of request
 	bodyBytes, err := io.ReadAll(r.Body)
+
 	if err != nil {
 		return storage.UserActionInfo{}, fmt.Errorf("reading body error: %w", err)
 	}
+	defer func() { _ = r.Body.Close() }()
 	if !json.Valid(bodyBytes) {
 		return storage.UserActionInfo{}, fmt.Errorf("bad json format body")
 	}

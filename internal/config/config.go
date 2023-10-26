@@ -46,14 +46,14 @@ func New() (*Config, error) {
 	}
 	defer func() { _ = file.Close() }()
 
-	var cfg *Config
+	var cfg Config
 	configDecoder := yaml.NewDecoder(file)
 
 	if err := configDecoder.Decode(&cfg); err != nil {
 		return nil, fmt.Errorf("%s: decode fault. %w", op, err)
 	}
 
-	return cfg, nil
+	return &cfg, nil
 }
 
 func validConfigPath(path string) error {
