@@ -46,7 +46,13 @@ func startWorker(ctx context.Context, log *slog.Logger, workerNumber int, jobs <
 		case <-ctx.Done():
 			log.Info(fmt.Sprintf("worker %d is ended", workerNumber))
 			return
-		case userInfo := <-jobs:
+		case userInfo, ok := <-jobs:
+			// check if jobs channel was closed
+			if !ok {
+				log.InfoContext(ctx, fmt.Sprintf("Jobs channel was closed. Worker %d is ended", workerNumber))
+				return
+			}
+
 			err := saver.Save(ctx, userInfo)
 			if err != nil {
 				log.ErrorContext(ctx,
